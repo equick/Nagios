@@ -12,8 +12,8 @@ window.nagiosDiv = nagiosDiv;
 
 	 mw.hook( 'wikipage.content' ).add( function ( $content ) {
 		var nagiosRefreshInterval = mw.config.get( 'wgNagiosRefresh' );
-		setInterval("nagiosDiv.refreshDiv($( '#nagiosstatus' ))", nagiosRefreshInterval);
-		setInterval("nagiosDiv.refreshDiv($( '#nagiosextinfo' ))", nagiosRefreshInterval);
+		setInterval("nagiosDiv.refreshDiv($( 'div[id^=\"nagiosstatus\"]' ))", nagiosRefreshInterval);
+		setInterval("nagiosDiv.refreshDiv($( 'div[id^=\"nagiosextinfo\"]' ))", nagiosRefreshInterval);
 	} );
 } )( mediaWiki, jQuery );
 

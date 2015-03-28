@@ -47,8 +47,10 @@ class Nagios {
 		global $wgNagiosRefresh, $wgScriptPath, $wgOut, $nagiosStatusCounter, $nagiosExtinfoCounter;
 
 		wfDebugLog( 'Nagios', "wfNagiosRender" );
+		wfDebugLog( 'Nagios', "input=$input" );
 
 		$output="";
+		$caption="<CAPTION>$input</CAPTION>";
 
 		//invalidate cache
 		$parser->disableCache();
@@ -169,11 +171,12 @@ EOT;
 			// get the nagios status table and replace local links with remote nagios url
 			wfDebugLog( 'Nagios', "Writing nagiosstatus div" );
 
-			$output='<div id="nagiosstatus' . $nagiosStatusCounter++ . '">';
+			$output='<div class="status" id="nagiosstatus' . $nagiosStatusCounter++ . '">';
 			$statustable=$html->find('table.status');
 			foreach ($statustable as $s){
 				$line="";
 				$line=str_replace("/nagios",$nagiosurl ,$s);
+				$line=str_replace('<table border=0 width=100% class=\'status\'>',"<table border=0 width=100% class='status'>$caption", $line);
 				$line=str_replace("status.cgi",$nagioscgi . "status.cgi",$line);
 
 				// removes sort columns header for tidiness
@@ -188,8 +191,8 @@ EOT;
 			// get the extended information table
 			wfDebugLog( 'Nagios', "Writing nagiosextinfo div" );
 
-			$output='<div id="nagiosextinfo' . $nagiosExtinfoCounter++ . '">';
-			$output.= "<TABLE BORDER=1 CELLSPACING=0 CELLPADDING=0>";
+			$output='<div class="stateInfoPanel" id="nagiosextinfo' . $nagiosExtinfoCounter++ . '">';
+			$output.= "<TABLE BORDER=1 CELLSPACING=0 CELLPADDING=0>$caption";
 		
 			$stateInfoTable1=$html->find('td.stateInfoTable1');	
 			foreach ($stateInfoTable1 as $line){

@@ -41,3 +41,18 @@ table.status tr td:nth-child(2) {
 	text-align: -moz-right;
 }
 
+/* table captions */
+.stateInfoPanel caption{
+	text-align: left;
+	font-size: 11pt;
+	padding-top: 1%;
+	padding-bottom: 1%;
+}
+
+.status caption{
+        text-align: left;
+        font-size: 11pt;
+	padding-top: 1%;
+	padding-bottom: 1%;
+}
+
