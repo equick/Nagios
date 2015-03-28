@@ -43,13 +43,21 @@
  
 class Nagios { 
 
-	public static function Render ( $input, array $args, Parser $parser, PPFrame $frame ) {
+	public static function init( &$parser ) {
+                $parser->setHook( 'nagios', array( 'Nagios', 'renderNagios' ) );
+                return true;
+        }
+
+	public static function renderNagios ( $input, array $args, Parser $parser, PPFrame $frame ) {
 		global $wgNagiosRefresh, $wgScriptPath, $wgOut, $nagiosStatusCounter, $nagiosExtinfoCounter;
+		global $wgNagiosUser,$wgNagiosPassword,$wgNagiosPnp4User,$wgNagiosPnp4Password;
 
 		wfDebugLog( 'Nagios', "wfNagiosRender" );
 		wfDebugLog( 'Nagios', "input=$input" );
 
 		$output="";
+
+		//table header
 		$caption="<CAPTION>$input</CAPTION>";
 
 		//invalidate cache
@@ -86,12 +94,15 @@ class Nagios {
 				break;
 			case 'nagiosurl':
 				$nagiosurl=htmlspecialchars($value);
+				$nagiosurl=self::sanitize($nagiosurl);
 				break;
 			case 'nagioscgi':
 				$nagioscgi=htmlspecialchars($value);
+				$nagioscgi=self::sanitize($nagioscgi);
 				break;
 			case 'pnp4url':
 				$pnp4url=htmlspecialchars($value);
+				$pnp4urli=self::sanitize($pnp4url);
 				break;
 			case 'service':
 				$service=htmlspecialchars($value);
@@ -119,24 +130,27 @@ class Nagios {
 		// -------------------------------------------
 
 
-		// check the nagios url exists 
-		if(!urlExists($nagiosurl) && !urlExists("$nagiosurl/")){
-			wfDebugLog( 'Nagios', "nagiosurl=$nagiosurl does not exist" );
+		// check the nagios url can be accessed
+		if(! self::nagiosUrlExists($nagiosurl)){
+			wfDebugLog( 'Nagios', "nagiosurl=$nagiosurl could not connect" );
 			$output= <<< EOT
 <br><font color=red>
 ERROR: (nagiosurl)<br>
-Check your URL: $nagiosurl <br>
+Failed to connect to nagios URL: $nagiosurl <br>
 </font><br>
 EOT;
 			return $output;
 		}
+		$output="";
 
 		wfDebugLog( 'Nagios', "nagiosurl=$nagiosurl, path=$path, extended=$extended, style=$style" );
 
-		// base urls for nagios/pnp4nagios (set defaults if not defined)
+		// set up default cgi-bin url if not specified
 		if ( $nagioscgi=="" ){	
 			$nagioscgi=$nagiosurl . "/cgi-bin/";
 		}
+
+		// set up default pnp4nagios url if not specified
 		if ( $pnp4url=="" ){
 			$parse=parse_url($nagiosurl);
 			$domain=$parse['host'];  
@@ -145,18 +159,65 @@ EOT;
 
 		wfDebugLog( 'Nagios', "nagioscgi=$nagioscgi, pnp4url=$pnp4url" );
 
+
+		// -------------------------------------------
+
 		// fetch the nagios page
-		require_once('includes/simple_html_dom.php');
-		$html=new simple_html_dom();
 		if($extended){
 			$url=$nagioscgi . "extinfo.cgi?$path";
 		}else{
 			$url=$nagioscgi . "status.cgi?$path";
 		}
 
-		wfDebugLog( 'Nagios', "Fetching url=$url" );	
+		wfDebugLog( 'Nagios', "url=$url" );	
 
-		$html->load_file( $url );
+		// set up the requests headers
+		$wgNagiosUserAgent="Mediawiki NagiosExtension/1.0";
+		$nagiosUserAgentHeader = "User-Agent: $wgNagiosUserAgent";
+		$headers= array ( "User-Agent: $wgNagiosUserAgent" );
+
+		// add auth header
+		if (!($wgNagiosUser=="" && $wgNagiosPassword=="")){
+			$nagiosPassBasicHeader = "Authorization: Basic " . base64_encode($wgNagiosUser . ':' . $wgNagiosPassword); 
+			wfDebugLog( 'Nagios', "Adding authorization header: $nagiosPassBasicHeader" );	
+			array_push($headers, $nagiosPassBasicHeader);
+
+			// assume pnp4nagios user name and password are the same as nagios ig empty
+			if($wgNagiosPnp4User==""){
+				$wgNagiosPnp4User=$wgNagiosUser;
+			}
+			if($wgNagiosPnp4Password==""){
+				$wgNagiosPnp4Password=$wgNagiosPassword;
+			}
+		}
+
+		$opts = array('http' =>
+                    array(
+                        'method'  => 'GET',
+                        'timeout' => 20,
+                        'header'  => $headers
+                        )
+                );
+
+		$context = stream_context_create($opts);
+		require_once('includes/simple_html_dom.php');
+
+		wfDebugLog( 'Nagios', 'Fetching the url');
+		$html=file_get_html( $url, 0, $context );
+
+		if($html==false){
+			wfDebugLog( 'Nagios', "Failed to retrieve url." );
+                        $output= <<< EOT
+<br><font color=red>
+ERROR: (nagiosurl)<br>
+Failed to retrieve URL: $nagiosurl <br>
+</font><br>
+EOT;
+                        return $output;
+
+		}
+
+		// -------------------------------------------
 
 		// Add the css and js files to the output
 		$wgOut->addModules( 'ext.nagios.common' );
@@ -168,6 +229,7 @@ EOT;
 		$wgOut->addModules( 'ext.nagios.pnp4nagios' );
 
 		if(!$extended){
+			$pnp4BasicAuth = base64_encode($wgNagiosPnp4User . ':' . $wgNagiosPnp4Password); 
 			// get the nagios status table and replace local links with remote nagios url
 			wfDebugLog( 'Nagios', "Writing nagiosstatus div" );
 
@@ -183,8 +245,8 @@ EOT;
 				$line=preg_replace('/<th class=\'status\'>(\w+)((?!<\/th>).)*<\/th>/',"<th class='status'>$1&nbsp;</th>",$line);
 
 				$line=str_replace("extinfo.cgi",$nagioscgi . "extinfo.cgi",$line);
-				$line=str_replace("/pnp4nagios/index.php/graph",$pnp4url . "/index.php/graph",$line);
-				$line=str_replace("/pnp4nagios/index.php/popup?", $wgScriptPath . '/extensions/Nagios/includes/popup.php?pnp4url=' . $pnp4url . '&',$line);
+				$line=str_replace("/pnp4nagios/graph",$pnp4url . "/graph",$line);
+				$line=str_replace("/pnp4nagios/popup?", $wgScriptPath . '/extensions/Nagios/includes/popup.php?pnp4url=' . $pnp4url . "&pnp4BasicAuth=$pnp4BasicAuth&wgNagiosUserAgent=$wgNagiosUserAgent&",$line);
 				$output.=$line;
 			}
 		}else{
@@ -213,6 +275,34 @@ EOT;
 
 	}
 
+	/**
+         * Checks a url exists
+         *
+         * @param string $url
+         *
+         * return boolean
+         */	
+	protected static function nagiosUrlExists( $url ){
+		if (is_array(@get_headers($url))){
+			return true;
+		}else{
+			return false;
+		}
+	}
+
+	/**
+         * Format url string correctly. 
+         *
+         * @param string $url
+         *
+         * return string
+         */
+	protected static function sanitize($url){
+		if ((strpos($url, "http")) === false) {
+			$url = "http://" . $url;
+		}
+		return $url;
+	}
 }
 
 ?>

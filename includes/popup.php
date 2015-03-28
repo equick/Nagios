@@ -1,16 +1,33 @@
 <?php
 
+
 require_once('simple_html_dom.php');
 
-# example url http://linuxproblems.org/pnp4nagios/index.php/popup?host=centos&srv=_HOST_&_=1426421049833
+# example url http://linuxproblems.org/pnp4nagios/popup?host=centos&srv=_HOST_&_=1426421049833
 
 $pnp4url=$_GET['pnp4url'];
 $host=$_GET['host'];
 $srv=$_GET['srv'];
+$pnp4BasicAuth=$_GET['pnp4BasicAuth'];
+$wgNagiosUserAgent=$_GET['wgNagiosUserAgent'];
 
-$url=$pnp4url . "/index.php/popup?host=$host&srv=" . urlencode($srv);
-$html=new simple_html_dom();
-$html->load_file($url);
+$pnp4PassBasicHeader = "Authorization: Basic $pnp4BasicAuth";
+
+$url=$pnp4url . "/popup?host=$host&srv=" . urlencode($srv);
+
+$opts = array('http' =>
+		array(
+        		'method'  => 'GET',
+                        'timeout' => 20,
+			'header'  => array ( $pnp4PassBasicHeader,
+                                             "User-Agent: $wgNagiosUserAgent"
+                                )
+                        )
+                );
+
+$context = stream_context_create($opts);
+
+$html=file_get_html( $url, 0, $context );
 
 $table=$html->find('table');
 

@@ -8,13 +8,8 @@ if (!defined( 'MEDIAWIKI' ) ) {
 $dir = __DIR__;
 $wgAutoloadClasses['Nagios'] = $dir . '/Nagios.body.php';
 $wgAutoloadClasses['NagiosHooks'] = $dir . '/Nagios.hooks.php';
-$wgHooks['ParserFirstCallInit'][] = 'wfNagios';
+$wgHooks['ParserFirstCallInit'][] = 'Nagios::init';
 $wgHooks['ResourceLoaderGetConfigVars'][] = 'NagiosHooks::onResourceLoaderGetConfigVars';
-
-function wfNagios( Parser $parser ) {
-        $parser->setHook( 'Nagios', 'Nagios::Render' );
-        return true;
-}
 
 // Special Page Info
 $wgExtensionCredits['parserhook'][] = array(
@@ -28,7 +23,7 @@ $wgExtensionCredits['parserhook'][] = array(
 // default refresh set to 1 minute
 $wgNagiosRefresh=60000;
 
-//stylesheets and js files used from these packages on centos
+//stylesheets and js files used from these packages on centos 6.5
 $wgNagiosVersion="nagios-3.5.1-1.el6.x86_64";
 $wgPNP4NagiosVersion="pnp4nagios-0.6.22-2.el6.x86_64";
 
