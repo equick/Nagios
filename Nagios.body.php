@@ -27,6 +27,7 @@
  *
  *     extended			: display extended information (true or false)
  *     host			: display all hosts or a specific host whose services should be displayed
+ *     hostgroup		: display all hostgroups or one specific hostgroup whose hosts and services should be displayed
  *     hoststatustypes		: display hosts in a given state 1=Pending; 2=Up; 4=Down; 8=Unreachable
  *     service			: display all services or a specific service
  *     servicegroup		: display hosts and services for all servicegroups or one specific servicegroup
@@ -89,6 +90,10 @@ class Nagios {
 				$host=htmlspecialchars($value);
 				$path.="&host=$host";
 				break;
+			case 'hostgroup':
+                                $hostgroup=htmlspecialchars($value);
+                                $path.="&hostgroup=$hostgroup";
+                                break;
 			case 'hoststatustypes':
 				$hoststatustypes=htmlspecialchars($value);
 				$path.="&hoststatustypes=$hoststatustypes";
@@ -156,7 +161,7 @@ EOT;
 
 		// set up default cgi-bin url if not specified
 		if ( $nagioscgi=="" ){	
-			$nagioscgi=$nagiosurl . "/cgi-bin/";
+			$nagioscgi=$nagiosurl . "cgi-bin/";
 		}
 
 		// set up default pnp4nagios url if not specified
@@ -233,6 +238,7 @@ EOT;
 				$line=str_replace("/nagios",$nagiosurl ,$s);
 				$line=str_replace('<table border=0 width=100% class=\'status\'>',"<table border=0 width=100% class='status'>$caption", $line);
 				$line=str_replace("status.cgi",$nagioscgi . "status.cgi",$line);
+				$line=str_replace("statusmap.cgi",$nagioscgi . "statusmap.cgi",$line);
 
 				// removes sort columns header for tidiness
 				$line=preg_replace('/<th class=\'status\'>(\w+)((?!<\/th>).)*<\/th>/',"<th class='status'>$1&nbsp;</th>",$line);
