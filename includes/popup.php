@@ -8,10 +8,7 @@ require_once('simple_html_dom.php');
 $pnp4url=$_GET['pnp4url'];
 $host=$_GET['host'];
 $srv=$_GET['srv'];
-$pnp4BasicAuth=$_GET['pnp4BasicAuth'];
 $wgNagiosUserAgent=$_GET['wgNagiosUserAgent'];
-
-$pnp4PassBasicHeader = "Authorization: Basic $pnp4BasicAuth";
 
 $url=$pnp4url . "/popup?host=$host&srv=" . urlencode($srv);
 
@@ -19,7 +16,7 @@ $opts = array('http' =>
 		array(
         		'method'  => 'GET',
                         'timeout' => 20,
-			'header'  => array ( $pnp4PassBasicHeader,
+			'header'  => array ( 
                                              "User-Agent: $wgNagiosUserAgent"
                                 )
                         )

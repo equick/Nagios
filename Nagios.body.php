@@ -43,6 +43,8 @@
  
 class Nagios { 
 
+	public static $status="";
+
 	public static function init( &$parser ) {
                 $parser->setHook( 'nagios', array( 'Nagios', 'renderNagios' ) );
                 return true;
@@ -50,7 +52,6 @@ class Nagios {
 
 	public static function renderNagios ( $input, array $args, Parser $parser, PPFrame $frame ) {
 		global $wgNagiosRefresh, $wgScriptPath, $wgOut, $nagiosStatusCounter, $nagiosExtinfoCounter;
-		global $wgNagiosUser,$wgNagiosPassword,$wgNagiosPnp4User,$wgNagiosPnp4Password;
 
 		wfDebugLog( 'Nagios', "wfNagiosRender" );
 		wfDebugLog( 'Nagios', "input=$input" );
@@ -131,14 +132,22 @@ class Nagios {
 
 
 		// check the nagios url can be accessed
-		if(! self::nagiosUrlExists($nagiosurl)){
+		if(! self::checkUrl($nagiosurl)){
 			wfDebugLog( 'Nagios', "nagiosurl=$nagiosurl could not connect" );
+			$status=self::$status;
 			$output= <<< EOT
 <br><font color=red>
-ERROR: (nagiosurl)<br>
 Failed to connect to nagios URL: $nagiosurl <br>
+Status returned: $status
 </font><br>
 EOT;
+			if (strpos($status,'401 Authorization Required')){
+				$output.= <<< EOT
+<br><font color=red>
+See <a href="http://www.mediawiki.org/wiki/Extension:NagVis#Notes_about_authentication">NagVis Extension Notes about authentication</a>
+</font><br>
+EOT;
+			}
 			return $output;
 		}
 		$output="";
@@ -175,21 +184,6 @@ EOT;
 		$wgNagiosUserAgent="Mediawiki NagiosExtension/1.0";
 		$nagiosUserAgentHeader = "User-Agent: $wgNagiosUserAgent";
 		$headers= array ( "User-Agent: $wgNagiosUserAgent" );
-
-		// add auth header
-		if (!($wgNagiosUser=="" && $wgNagiosPassword=="")){
-			$nagiosPassBasicHeader = "Authorization: Basic " . base64_encode($wgNagiosUser . ':' . $wgNagiosPassword); 
-			wfDebugLog( 'Nagios', "Adding authorization header: $nagiosPassBasicHeader" );	
-			array_push($headers, $nagiosPassBasicHeader);
-
-			// assume pnp4nagios user name and password are the same as nagios ig empty
-			if($wgNagiosPnp4User==""){
-				$wgNagiosPnp4User=$wgNagiosUser;
-			}
-			if($wgNagiosPnp4Password==""){
-				$wgNagiosPnp4Password=$wgNagiosPassword;
-			}
-		}
 
 		$opts = array('http' =>
                     array(
@@ -229,7 +223,6 @@ EOT;
 		$wgOut->addModules( 'ext.nagios.pnp4nagios' );
 
 		if(!$extended){
-			$pnp4BasicAuth = base64_encode($wgNagiosPnp4User . ':' . $wgNagiosPnp4Password); 
 			// get the nagios status table and replace local links with remote nagios url
 			wfDebugLog( 'Nagios', "Writing nagiosstatus div" );
 
@@ -245,8 +238,8 @@ EOT;
 				$line=preg_replace('/<th class=\'status\'>(\w+)((?!<\/th>).)*<\/th>/',"<th class='status'>$1&nbsp;</th>",$line);
 
 				$line=str_replace("extinfo.cgi",$nagioscgi . "extinfo.cgi",$line);
-				$line=str_replace("/pnp4nagios/graph",$pnp4url . "/graph",$line);
-				$line=str_replace("/pnp4nagios/popup?", $wgScriptPath . '/extensions/Nagios/includes/popup.php?pnp4url=' . $pnp4url . "&pnp4BasicAuth=$pnp4BasicAuth&wgNagiosUserAgent=$wgNagiosUserAgent&",$line);
+				$line=preg_replace('/\/pnp4nagios\/(index\.php\/)?graph/',$pnp4url . "graph",$line);
+				$line=preg_replace('/\/pnp4nagios\/(index\.php\/)?popup\?/', $wgScriptPath . '/extensions/Nagios/includes/popup.php?pnp4url=' . $pnp4url . "&wgNagiosUserAgent=$wgNagiosUserAgent&",$line);
 				$output.=$line;
 			}
 		}else{
@@ -275,28 +268,24 @@ EOT;
 
 	}
 
-	/**
-         * Checks a url exists
-         *
-         * @param string $url
-         *
-         * return boolean
-         */	
-	protected static function nagiosUrlExists( $url ){
-		if (is_array(@get_headers($url))){
-			return true;
-		}else{
-			return false;
+	// Check we can reach the url provided
+	protected static function checkUrl( $url ){
+		$headers = @get_headers($url);		
+		$status=$headers[0];
+		self::$status=$status;
+		wfDebugLog( 'Nagios', "checkUrl: " . $headers[0] );
+		if (is_array($headers)){
+        		if(strpos($status, '200 OK')){
+            			return true;
+        		}else{
+            			return false;    
+			}
 		}
-	}
+		return false;
+    	}         
 
-	/**
-         * Format url string correctly. 
-         *
-         * @param string $url
-         *
-         * return string
-         */
+
+	// Add http prefix if that gets missed off
 	protected static function sanitize($url){
 		if ((strpos($url, "http")) === false) {
 			$url = "http://" . $url;
