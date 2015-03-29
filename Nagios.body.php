@@ -114,6 +114,10 @@ class Nagios {
 				$service=htmlspecialchars($value);
 				$path.="&service=$service";
 				break;
+			case 'servicefilter':
+                                $servicefilter=htmlspecialchars($value);
+                                $path.="&servicefilter=$servicefilter";
+                                break;
 			case 'servicegroup':
 				$servicegroup=htmlspecialchars($value);
 				$path.="&servicegroup=$servicegroup";
@@ -237,6 +241,9 @@ EOT;
 				$line="";
 				$line=str_replace("/nagios",$nagiosurl ,$s);
 				$line=str_replace('<table border=0 width=100% class=\'status\'>',"<table border=0 width=100% class='status'>$caption", $line);
+				if(isset($hostgroup) || isset($servicegroup)){
+					$line=str_replace('<table class=\'status\'>',"<table class='status'>$caption", $line);
+				}
 				$line=str_replace("status.cgi",$nagioscgi . "status.cgi",$line);
 				$line=str_replace("statusmap.cgi",$nagioscgi . "statusmap.cgi",$line);
 
