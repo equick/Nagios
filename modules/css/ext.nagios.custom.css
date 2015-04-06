@@ -2,27 +2,12 @@
 
 table.status {
    padding: 0 0 10px 0;
-   white-space: normal;
    border-spacing: 1px;
-   width: 90%;
 }
 
 .status a{
     border-bottom: none;
 }
-
-.statusEven { 
-   padding: 0 4px 0 4px;
-#   line-height: 0;
-}
-
-.statusOdd { 
-   padding: 0 4px 0 4px;
-#   line-height: 0;
-}
-
-
-/*more customisation*/
 
 .status a:link{
    color: #40529B;
@@ -30,15 +15,6 @@ table.status {
 
 .status a:visited{
    color: #40529B;
-}
-
-.status td, th {
-
-}
-
-table.status tr td:nth-child(2) {
-	text-align: -webkit-right;
-	text-align: -moz-right;
 }
 
 /* table captions */

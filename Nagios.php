@@ -25,7 +25,6 @@ $wgNagiosRefresh=60000;
 
 //stylesheets and js files used from these packages on centos 6.5
 $wgNagiosVersion="nagios-3.5.1-1.el6.x86_64";
-$wgPNP4NagiosVersion="pnp4nagios-0.6.22-2.el6.x86_64";
 
 // Resource Loader config for css and js files
 $nagiosResourceTemplate = array(
@@ -35,8 +34,8 @@ $nagiosResourceTemplate = array(
 
 // Resources common to all pages
 $wgResourceModules['ext.nagios.common'] = $nagiosResourceTemplate + array(
-	'styles' => array ( 'modules/custom/ext.nagios.custom.css' ),
-        'scripts' => array( 'modules/custom/ext.nagios.refresh.js' ),
+	'styles' => array ( 'modules/css/ext.nagios.custom.css', 'modules/css/jquery.qtip.css' ),
+        'scripts' => array( 'modules/js/ext.nagios.refresh.js', 'modules/js/jquery.qtip.min.js', 'modules/js/ext.nagios.jquery.mouseover.js' ),
         'position' => 'top',
 );
 
@@ -44,12 +43,6 @@ $wgResourceModules['ext.nagios.common'] = $nagiosResourceTemplate + array(
 $wgResourceModules['ext.nagios.status'] = $nagiosResourceTemplate + array(
 	'styles' => array ( "modules/$wgNagiosVersion/ext.nagios.common.css", "modules/$wgNagiosVersion/ext.nagios.status.css" ),
        	'position' => 'top',
-);
-
-// Resources for pnp4nagios
-$wgResourceModules['ext.nagios.pnp4nagios'] = $nagiosResourceTemplate + array(
-	'scripts' => array( "modules/$wgPNP4NagiosVersion/ext.nagios.jquery-min.js", "modules/$wgPNP4NagiosVersion/ext.nagios.jquery.cluetip.js", 'modules/custom/ext.nagios.jquery.atips.js' ),
-       	'position' => 'bottom',
 );
 
 // Resources for extended information

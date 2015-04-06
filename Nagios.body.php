@@ -244,13 +244,28 @@ EOT;
 				if(isset($hostgroup) || isset($servicegroup)){
 					$line=str_replace('<table class=\'status\'>',"<table class='status'>$caption", $line);
 				}
+
+
 				$line=str_replace("status.cgi",$nagioscgi . "status.cgi",$line);
 				$line=str_replace("statusmap.cgi",$nagioscgi . "statusmap.cgi",$line);
+
+				// add service details popup
+				$line=preg_replace('/(status\.cgi\?host=(\w+)\')\>/', "$1" . ' class=\'tips\' \' >', $line);
+				$line=preg_replace('/title=\'View Service Details For This Host\'/', '', $line);
+				$line=preg_replace('/(servicestatustypes=\d+&hoststatustypes=\d+&serviceprops=\d+&hostprops=\d+)/', "$1' class='tips'", $line);
 
 				// removes sort columns header for tidiness
 				$line=preg_replace('/<th class=\'status\'>(\w+)((?!<\/th>).)*<\/th>/',"<th class='status'>$1&nbsp;</th>",$line);
 
 				$line=str_replace("extinfo.cgi",$nagioscgi . "extinfo.cgi",$line);
+
+                                // add extinfo popup for host link
+                                $line=preg_replace('/(extinfo\.cgi\?type=1&host=([^\>]+)\')\>/', "$1" . ' class="tips" >', $line);
+
+				$line=preg_replace('/title=\'View Extended Information For This Host\'/', '', $line);
+				$line=preg_replace('/title=\'Perform Extra Host Actions\'/', '', $line);
+
+
 				$line=preg_replace('/\/pnp4nagios\/(index\.php\/)?graph/',$pnp4url . "graph",$line);
 				$line=preg_replace('/\/pnp4nagios\/(index\.php\/)?popup\?/', $wgScriptPath . '/extensions/Nagios/includes/popup.php?pnp4url=' . $pnp4url . "&wgNagiosUserAgent=$wgNagiosUserAgent&",$line);
 				$output.=$line;
