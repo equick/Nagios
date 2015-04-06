@@ -25,7 +25,7 @@ $(document).on('mouseover', '.tips', function(event) {
                 	}
             	},
             	position: {
-                	viewport: $(window)
+                	viewport: $(window),
             	},
 		style: {
         		classes: 'qtip-light qtip-rounded qtip-shadow',
@@ -36,7 +36,11 @@ $(document).on('mouseover', '.tips', function(event) {
         		effect: function(offset) {
             			$(this).slideDown(100);
         		}
-    		}
+    		},
+		hide: {
+      			fixed: true,
+			delay: 100	//keeps the tooltip open long enough to hover the mouseover
+   		}
          },event)
 });
 

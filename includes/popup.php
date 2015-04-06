@@ -58,7 +58,6 @@ GET services
 Columns: description plugin_output last_state_change
 Filter: state = $servicestate
 Filter: host_name = $host
-Limit: 20
 EOT;
 
 		$query='live.php?q=' . lqlEncode($lql);
@@ -66,13 +65,32 @@ EOT;
                 $json=file_get_contents( $url, 0, $context );
                 $obj = json_decode($json);
                 $serviceinfo=$obj[1];
-		if($servicestate==2){
+		if($servicestate==0){
                         printServicesList($obj[1]);
                 }else{
                         printServicesByLastStateChange($obj[1]);
                 }
                 exit;
 
+	case preg_match('/status.cgi\?servicegroup=([^&]+)&style=detail&servicestatustypes=(\d+)&hoststatustypes=\d+&serviceprops=\d+&hostprops=\d+$/', $url, $match):
+		$servicegroup=$match[1];	
+		$servicestatustype=$match[2];
+                $servicestate=getServiceState($servicestatustype);
+
+		$lql= <<<EOT
+GET servicesbygroup
+Columns: host_name description plugin_output last_state_change
+Filter: state = $servicestate
+Filter: servicegroup_name = $servicegroup
+EOT;
+
+                $query='live.php?q=' . lqlEncode($lql);
+                $url=preg_replace('/cgi-bin\/status.cgi.*$/', "$query", $url);
+                $json=file_get_contents( $url, 0, $context );
+                $obj = json_decode($json);
+                $serviceinfo=$obj[1];
+                printServiceGroupList($obj[1]);
+                exit;
 
 	case preg_match('/status.cgi\?host=(\w+)$/', $url, $match):
 		$host=$match[1];
@@ -80,7 +98,6 @@ EOT;
 GET services
 Columns: description plugin_output last_state_change
 Filter: host_name = $host
-Limit: 20
 EOT;
 		$query='live.php?q=' . lqlEncode($lql);
 		$url=preg_replace('/cgi-bin\/status.cgi.*$/', "$query", $url);
@@ -151,7 +168,7 @@ function printServicesByLastStateChange($serviceinfo){
 	$times=array();	
 	foreach ($serviceinfo as $servicerow){
 		$services=array();	
-        	$row="$servicerow[0] $servicerow[1]<br>";
+        	$row="<td>$servicerow[0]</td><td>$servicerow[1]</td>";
                 $laststatechange=$servicerow[2];
 		if(isset($times["$laststatechange"])){
 			$services=$times["$laststatechange"];
@@ -160,14 +177,14 @@ function printServicesByLastStateChange($serviceinfo){
 		$times["$laststatechange"]=$services;
 	}
 	
-	
 	krsort($times);
+	print '<div id="tooltip"><table>';
 	foreach ($times as $time=>$services){
-		#print "$time ---- ";
 		foreach ($services as $row){
-			print "$row";
+			print "<tr>$row</tr>";
 		}
 	}
+	print '</table></div>';
 }
 
 function printServicesList($serviceinfo){
@@ -175,16 +192,49 @@ function printServicesList($serviceinfo){
 	foreach ($serviceinfo as $servicerow){
 		$service=$servicerow[0];
 		$plugin_output=$servicerow[1];
-		$row="$service $plugin_output<br>";
+
+		if (preg_match('/^WARN/',$plugin_output)){
+			$row="<td style='background-color:#FF0'>$service</td><td>$plugin_output</td>";
+		} elseif (preg_match('/^CRIT/',$plugin_output)){
+			$row="<td style='background-color:#F88888'>$service</td><td>$plugin_output</td>";
+		} else {
+			$row="<td>$service</td><td>$plugin_output</td>";
+		}
 		$servicerows["$service"]=$row;
 	}
-	ksort($servicerows);
+	uksort($servicerows,"strnatcasecmp");
+	print '<div id="tooltip"><table>';
 	foreach ($servicerows as $row){
-		print $row;
+		print "<tr>$row</tr>";
 	}
+	print '</table></div>';
 	
+}
+
+function printServiceGroupList($serviceinfo){
+        $servicerows=array();
+        foreach ($serviceinfo as $servicerow){
+		$host=$servicerow[0];
+                $service=$servicerow[1];
+                $plugin_output=$servicerow[2];
+
+                if (preg_match('/^WARN/',$plugin_output)){
+                        $row="<td style='color: blue'>$host</td><td style='background-color:#FF0'>$service</td><td>$plugin_output</td>";
+                } elseif (preg_match('/^CRIT/',$plugin_output)){
+                        $row="<td style='color: blue'>$host</td><td style='background-color:#F88888'>$service</td><td>$plugin_output</td>";
+                } else {
+                        $row="<td style='color: blue;'>$host</td><td>$service</td><td>$plugin_output</td>";
+                }
+                $servicerows["$host"]=$row;
+        }
+        uksort($servicerows,"strnatcasecmp");
+        print '<div id="tooltip"><table>';
+        foreach ($servicerows as $row){
+                print "<tr>$row</tr>";
+        }
+        print '</table></div>';
+
 }
 
 
 ?>
-

@@ -32,3 +32,13 @@ table.status {
 	padding-bottom: 1%;
 }
 
+#tooltip {
+    max-height: 350px;
+    overflow-x: auto;
+    overflow-y: auto;
+    width: 100%;
+}
+
+#tooltip tr:hover{
+    color: #F90; 
+}
