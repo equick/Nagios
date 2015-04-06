@@ -25,7 +25,7 @@ $opts = array('http' =>
 $context = stream_context_create($opts);
 
 switch(true){
-	case preg_match ('/nagios\/cgi-bin\/extinfo.cgi\?type=1&host=/', $url):
+	case preg_match ('/nagios\/cgi-bin\/extinfo.cgi\?type=\d+&host=/', $url):
 		$html=file_get_html( $url, 0, $context );
 		$output="";
         	$stateInfoTable1=$html->find('td.stateInfoTable1');
