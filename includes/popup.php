@@ -26,6 +26,7 @@ $context = stream_context_create($opts);
 
 switch(true){
 	case preg_match ('/nagios\/cgi-bin\/extinfo.cgi\?type=\d+&host=/', $url):
+		$url=str_replace(' ','%20',$url);
 		$html=file_get_html( $url, 0, $context );
 		$output="";
         	$stateInfoTable1=$html->find('td.stateInfoTable1');
@@ -38,7 +39,7 @@ switch(true){
 
 	case preg_match('/pnp4nagios\/graph\?host=/', $url):
 		$url=preg_replace('/pnp4nagios\/graph\?host=([^&]+)/', "pnp4nagios/index.php/popup?host=$1", $url);
-		$url=str_replace(' ','%20',$url);	// file_get_html barfs on spaces
+		$url=str_replace(' ','%20',$url);
 		$html=file_get_html( $url, 0, $context );
         	$table=$html->find('table');
         	foreach ($table as $s) {
