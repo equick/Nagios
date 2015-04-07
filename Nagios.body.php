@@ -267,7 +267,7 @@ EOT;
 
 
 				$line=preg_replace('/\/pnp4nagios\/(index\.php\/)?graph/',$pnp4url . "graph",$line);
-				$line=preg_replace('/\/pnp4nagios\/(index\.php\/)?popup\?/', $wgScriptPath . '/extensions/Nagios/includes/popup.php?pnp4url=' . $pnp4url . "&wgNagiosUserAgent=$wgNagiosUserAgent&",$line);
+				$line=preg_replace('/\/pnp4nagios\/(index\.php\/)?popup\?/', $wgScriptPath . '/extensions/Nagios/includes/popup.php?pnp4url=' . urlencode($pnp4url) . "&wgNagiosUserAgent=$wgNagiosUserAgent&",$line);
 				$output.=$line;
 			}
 		}else{

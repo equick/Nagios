@@ -8,7 +8,7 @@ $pnp4url="";
 $extinfo="";
 
 if (isset($_GET['url']))
-	$url=$_GET['url'];
+	$url=urldecode($_GET['url']);
 else
 	exit;
 
@@ -37,7 +37,8 @@ switch(true){
 		exit;
 
 	case preg_match('/pnp4nagios\/graph\?host=/', $url):
-		$url=preg_replace('/pnp4nagios\/graph\?host=(\w+)/', "/pnp4nagios/index.php/popup?host=$1", $url);
+		$url=preg_replace('/pnp4nagios\/graph\?host=([^&]+)/', "pnp4nagios/index.php/popup?host=$1", $url);
+		$url=str_replace(' ','%20',$url);	// file_get_html barfs on spaces
 		$html=file_get_html( $url, 0, $context );
         	$table=$html->find('table');
         	foreach ($table as $s) {
