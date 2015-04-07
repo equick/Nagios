@@ -260,7 +260,7 @@ EOT;
 				$line=str_replace("extinfo.cgi",$nagioscgi . "extinfo.cgi",$line);
 
                                 // add extinfo popup for host link
-                                $line=preg_replace('/(extinfo\.cgi\?type=\d+&host=([^>]+)\')>(?!<img)/', "$1" . ' class="tips" >', $line);
+                                $line=preg_replace('/(extinfo\.cgi\?type=\d+&host=([^>]+)\')>(?!<img.*passive)/', "$1" . ' class="tips" >', $line);
 
 				// get rid of title popups
 				$line=preg_replace('/title=\'View Extended Information For This Host\'/', '', $line);
