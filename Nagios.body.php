@@ -260,10 +260,11 @@ EOT;
 				$line=str_replace("extinfo.cgi",$nagioscgi . "extinfo.cgi",$line);
 
                                 // add extinfo popup for host link
-                                $line=preg_replace('/(extinfo\.cgi\?type=\d+&host=([^\>]+)\')\>/', "$1" . ' class="tips" >', $line);
+                                $line=preg_replace('/(extinfo\.cgi\?type=\d+&host=([^>]+)\')>(?!<img)/', "$1" . ' class="tips" >', $line);
 
+				// get rid of title popups
 				$line=preg_replace('/title=\'View Extended Information For This Host\'/', '', $line);
-				$line=preg_replace('/title=\'Perform Extra Host Actions\'/', '', $line);
+				$line=preg_replace('/title=\'Perform Extra (Host|Service) Actions\'/', '', $line);
 
 
 				$line=preg_replace('/\/pnp4nagios\/(index\.php\/)?graph/',$pnp4url . "graph",$line);
