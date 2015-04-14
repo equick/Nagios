@@ -23,6 +23,12 @@ $wgExtensionCredits['parserhook'][] = array(
 // default refresh set to 1 minute
 $wgNagiosRefresh=60;
 
+// Assume Livestatus is not set up by default
+$wgNagiosLiveStatus=false;
+
+// Assume Pnp4Nagios is not used by default
+$wgNagiosPnp4Nagios=false;
+
 //stylesheets and js files used from these packages on centos 6.5
 $wgNagiosVersion="nagios-3.5.1-1.el6.x86_64";
 

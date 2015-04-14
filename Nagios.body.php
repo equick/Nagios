@@ -52,7 +52,7 @@ class Nagios {
         }
 
 	public static function renderNagios ( $input, array $args, Parser $parser, PPFrame $frame ) {
-		global $wgScriptPath, $wgOut, $nagiosStatusCounter, $nagiosExtinfoCounter;
+		global $wgScriptPath, $wgOut, $nagiosStatusCounter, $nagiosExtinfoCounter, $wgNagiosLiveStatus, $wgNagiosPnp4Nagios;
 
 		wfDebugLog( 'Nagios', "wfNagiosRender" );
 		wfDebugLog( 'Nagios', "input=$input" );
@@ -166,16 +166,16 @@ EOT;
 		// set up default cgi-bin url if not specified
 		if ( $nagioscgi=="" ){	
 			$nagioscgi=$nagiosurl . "cgi-bin/";
+			wfDebugLog( 'Nagios', "nagioscgi=$nagioscgi" );
 		}
 
 		// set up default pnp4nagios url if not specified
-		if ( $pnp4url=="" ){
+		if ( $wgNagiosPnp4Nagios==true && $pnp4url=="" ){
 			$parse=parse_url($nagiosurl);
 			$domain=$parse['host'];  
 			$pnp4url='http://' . $domain . "/pnp4nagios/";
+			wfDebugLog( 'Nagios', "pnp4url=$pnp4url" );
 		}
-
-		wfDebugLog( 'Nagios', "nagioscgi=$nagioscgi, pnp4url=$pnp4url" );
 
 
 		// -------------------------------------------
@@ -229,7 +229,10 @@ EOT;
 		}else{
 			$wgOut->addModules( 'ext.nagios.status' );
 		}
-		$wgOut->addModules( 'ext.nagios.pnp4nagios' );
+
+		if($wgNagiosPnp4Nagios==true){
+			$wgOut->addModules( 'ext.nagios.pnp4nagios' );
+		}
 
 		if(!$extended){
 			// get the nagios status table and replace local links with remote nagios url
@@ -249,11 +252,6 @@ EOT;
 				$line=str_replace("status.cgi",$nagioscgi . "status.cgi",$line);
 				$line=str_replace("statusmap.cgi",$nagioscgi . "statusmap.cgi",$line);
 
-				// add service details popup
-				$line=preg_replace('/(status\.cgi\?host=(\w+)\')\>/', "$1" . ' class=\'tips\' \' >', $line);
-				$line=preg_replace('/title=\'View Service Details For This Host\'/', '', $line);
-				$line=preg_replace('/(servicestatustypes=\d+&hoststatustypes=\d+&serviceprops=\d+&hostprops=\d+)/', "$1' class='tips'", $line);
-
 				// removes sort columns header for tidiness
 				$line=preg_replace('/<th class=\'status\'>(\w+)((?!<\/th>).)*<\/th>/',"<th class='status'>$1&nbsp;</th>",$line);
 
@@ -262,13 +260,26 @@ EOT;
                                 // add extinfo popup for host link
                                 $line=preg_replace('/(extinfo\.cgi\?type=\d+&host=([^>]+)\')>(?!<img.*passive)/', "$1" . ' class="tips" >', $line);
 
-				// get rid of title popups
-				$line=preg_replace('/title=\'View Extended Information For This Host\'/', '', $line);
-				$line=preg_replace('/title=\'Perform Extra (Host|Service) Actions\'/', '', $line);
+				// add service details popup
+                                if($wgNagiosLiveStatus==true){
+					//service details
+                                        $line=preg_replace('/(status\.cgi\?host=(\w+)\')\>/', "$1" . ' class=\'tips\' \' >', $line);
+                                        $line=preg_replace('/title=\'View Service Details For This Host\'/', '', $line);
+                                        $line=preg_replace('/(servicestatustypes=\d+&hoststatustypes=\d+&serviceprops=\d+&hostprops=\d+)/', "$1' class='tips'", $line);
+					
+					//extended information
+                                	$line=preg_replace('/(extinfo\.cgi\?type=\d+&host=([^>]+)\')>(?!<img.*passive)/', "$1" . ' class="tips" >', $line);
 
+					// get rid of title popups
+					$line=preg_replace('/title=\'View Extended Information For This Host\'/', '', $line);
+					$line=preg_replace('/title=\'Perform Extra (Host|Service) Actions\'/', '', $line);
+				}
 
-				$line=preg_replace('/\/pnp4nagios\/(index\.php\/)?graph/',$pnp4url . "graph",$line);
-				$line=preg_replace('/\/pnp4nagios\/(index\.php\/)?popup\?/', $wgScriptPath . '/extensions/Nagios/includes/popup.php?pnp4url=' . urlencode($pnp4url) . "&wgNagiosUserAgent=$wgNagiosUserAgent&",$line);
+				if($wgNagiosPnp4Nagios==true){
+					$line=preg_replace('/\/pnp4nagios\/(index\.php\/)?graph/',$pnp4url . "graph",$line);
+					$line=preg_replace('/\/pnp4nagios\/(index\.php\/)?popup\?/', $wgScriptPath . '/extensions/Nagios/includes/popup.php?pnp4url=' . urlencode($pnp4url) . "&wgNagiosUserAgent=$wgNagiosUserAgent&",$line);
+				}
+
 				$output.=$line;
 			}
 		}else{
