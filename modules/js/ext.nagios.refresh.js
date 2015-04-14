@@ -3,7 +3,7 @@
 
 ( function ( mw, $ ) {
 
-	var nagiosRefreshInterval = mw.config.get( 'wgNagiosRefresh' );
+	var nagiosRefreshInterval = mw.config.get( 'wgNagiosRefresh' ) * 1000;
 	mw.hook( 'wikipage.content' ).add( function ( $content ) {
 		setTimeout(worker, nagiosRefreshInterval);
 	});

@@ -52,7 +52,7 @@ class Nagios {
         }
 
 	public static function renderNagios ( $input, array $args, Parser $parser, PPFrame $frame ) {
-		global $wgNagiosRefresh, $wgScriptPath, $wgOut, $nagiosStatusCounter, $nagiosExtinfoCounter;
+		global $wgScriptPath, $wgOut, $nagiosStatusCounter, $nagiosExtinfoCounter;
 
 		wfDebugLog( 'Nagios', "wfNagiosRender" );
 		wfDebugLog( 'Nagios', "input=$input" );
