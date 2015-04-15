@@ -17,7 +17,7 @@ $opts = array('http' =>
                         'method'  => 'GET',
                         'timeout' => 20,
                         'header'  => array (
-                                             "User-Agent: Nagios"
+                                             "User-Agent: MediaWiki NagiosExtension"
                                 )
                         )
                 );

@@ -11,7 +11,7 @@
  *
  * @ingroup Extensions
  * @author Edward Quick <edwardquick@hotmail.com>
- * @version 1.00
+ * @version 1.0b
  * @link http://www.mediawiki.org/wiki/Extension:Nagios Documentation
  * @license http://www.gnu.org/copyleft/gpl.html GNU General Public License 2.0 or later
  *
@@ -21,9 +21,11 @@
  *
  *  --arguments--:
  *
- *     nagiosurl		: 
- *     nagioscgi		:
- *     pnp4url			:
+ *     nagiosurl		: This is mandatory. Specify the url of the nagios backend. Example, http://linuxproblems.org/nagios/
+ *     nagioscgi		: Optional. Default is nagiosurl + cgi-bin. Example, http://linuxproblems.org/nagios/cgi-bin/
+ *     pnp4url			: Optional. Default is nagiosurl domain + /pnp4nagios. Example, http://linuxproblems.org/pnp4nagios/
+ *
+ *  The following parameters are taken from the Nagios CGIs status.cgi and extinfo.cgi.
  *
  *     extended			: display extended information (true or false)
  *     host			: display all hosts or a specific host whose services should be displayed
@@ -37,7 +39,7 @@
  *     type			: hosts; hostgroups; services; servicegroups; contacts; contactgroups; timeperiods; 
  *				  commands; hostescalations; serviceescalations; hostdependencies; servicedependencies
  *
- *  See http://docs.icinga.org/latest/en/cgiparams.html for more details on nagios cgi parameters
+ *  See http://docs.icinga.org/latest/en/cgiparams.html for more details on Nagios CGI parameters
  *
 */
 
@@ -190,7 +192,7 @@ EOT;
 		wfDebugLog( 'Nagios', "url=$url" );	
 
 		// set up the requests headers
-		$wgNagiosUserAgent="Mediawiki NagiosExtension/1.0";
+		$wgNagiosUserAgent="Mediawiki NagiosExtension";
 		$nagiosUserAgentHeader = "User-Agent: $wgNagiosUserAgent";
 		$headers= array ( "User-Agent: $wgNagiosUserAgent" );
 
@@ -245,9 +247,8 @@ EOT;
 
 				$line=str_replace("/nagios",$nagiosurl ,$s);
 
-				// add the table title
+				// add the table header
 				$line=preg_replace('/(<table [^(class)]*class=\'status\'[^>]*>)/', "$1" . "$caption", $line);
-
 
 				$line=str_replace("status.cgi",$nagioscgi . "status.cgi",$line);
 				$line=str_replace("statusmap.cgi",$nagioscgi . "statusmap.cgi",$line);
