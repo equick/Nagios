@@ -242,11 +242,11 @@ EOT;
 			$statustable=$html->find('table.status');
 			foreach ($statustable as $s){
 				$line="";
+
 				$line=str_replace("/nagios",$nagiosurl ,$s);
-				$line=str_replace('<table border=0 width=100% class=\'status\'>',"<table border=0 width=100% class='status'>$caption", $line);
-				if(isset($hostgroup) || isset($servicegroup)){
-					$line=str_replace('<table class=\'status\'>',"<table class='status'>$caption", $line);
-				}
+
+				// add the table title
+				$line=preg_replace('/(<table [^(class)]*class=\'status\'[^>]*>)/', "$1" . "$caption", $line);
 
 
 				$line=str_replace("status.cgi",$nagioscgi . "status.cgi",$line);
