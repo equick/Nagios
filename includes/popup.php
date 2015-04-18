@@ -1,6 +1,6 @@
 <?php
 
-ini_set("log_errors", 1);
+ini_set("log_errors", 0);
 
 require_once('simple_html_dom.php');
 
@@ -40,11 +40,16 @@ switch(true){
 	case preg_match('/pnp4nagios\/graph\?host=/', $url):
 		$url=preg_replace('/pnp4nagios\/graph\?host=([^&]+)/', "pnp4nagios/index.php/popup?host=$1", $url);
 		$url=str_replace(' ','%20',$url);
+
+		$baseUrl=getBaseUrl(parse_url($url));
+		
 		$html=file_get_html( $url, 0, $context );
         	$table=$html->find('table');
         	foreach ($table as $s) {
                 	// remove padding between popup windows
                 	$s=str_replace('<table', '<table  cellspacing="0" ',$s);
+			// prefix /pnp4nagios with remote url
+			$s=preg_replace('/src=\"\/pnp4nagios/',"src=\"$baseUrl/pnp4nagios",$s);
                 	$s=str_replace('<img', '<img style="float: left; border: 0; margin: 0; padding:0;"',$s);
                 	echo $s;
         	}
@@ -238,5 +243,15 @@ function printServiceGroupList($serviceinfo){
 
 }
 
+
+function getBaseUrl($parsed_url) {
+	$scheme   = isset($parsed_url['scheme']) ? $parsed_url['scheme'] . '://' : '';
+	$host     = isset($parsed_url['host']) ? $parsed_url['host'] : '';
+	$port     = isset($parsed_url['port']) ? ':' . $parsed_url['port'] : '';
+	$user     = isset($parsed_url['user']) ? $parsed_url['user'] : '';
+	$pass     = isset($parsed_url['pass']) ? ':' . $parsed_url['pass']  : '';
+	$pass     = ($user || $pass) ? "$pass@" : '';
+	return "$scheme$user$pass$host$port";
+} 
 
 ?>
